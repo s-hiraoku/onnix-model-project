@@ -3,15 +3,19 @@ from transformers import AutoTokenizer
 import numpy as np
 from pathlib import Path
 
-def run_inference(onnx_path: Path, test_text: str, model_name: str, max_length: int = 128) -> None:
+def run_inference(onnx_path: Path, question: str, context: str, model_name: str, max_length: int = 512) -> str:
     """
-    ONNXモデルを使用してテキストの推論を実行する関数。
+    ONNXモデルを使用して質問応答を実行。
 
     Args:
         onnx_path (Path): エクスポートされたONNXモデルのパス。
-        test_text (str): 推論を行う入力テキスト。
-        model_name (str): トークナイザーのロードに使用するモデル名。
+        question (str): 質問。
+        context (str): 質問のためのコンテキスト。
+        model_name (str): トークナイザーのモデル名。
         max_length (int): 最大入力トークン長。
+
+    Returns:
+        str: モデルが予測した回答。
     """
     # ONNXモデルのロード
     session = ort.InferenceSession(onnx_path.as_posix())
@@ -19,24 +23,27 @@ def run_inference(onnx_path: Path, test_text: str, model_name: str, max_length: 
     # トークナイザーのロード
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    # 入力テキストをトークナイズ
+    # 入力をトークナイズ
     inputs = tokenizer(
-        test_text,
+        question, context,
         return_tensors="np",  # NumPy形式
         max_length=max_length,
         padding="max_length",
         truncation=True,
     )
 
-    # ONNXモデル用の入力を準備
+    # モデル入力
     input_feed = {
         "input_ids": inputs["input_ids"],
         "attention_mask": inputs["attention_mask"],
     }
 
-    # 推論を実行
+    # 推論実行
     outputs = session.run(None, input_feed)
-    logits = outputs[0]
-    predicted_label = np.argmax(logits, axis=1)
-    print(f"入力: {test_text}")
-    print(f"予測ラベル: {predicted_label}")
+    start_logits, end_logits = outputs
+    start_index = start_logits.argmax(axis=1)[0]
+    end_index = end_logits.argmax(axis=1)[0]
+
+    # 回答をデコード
+    answer = tokenizer.decode(inputs["input_ids"][0][start_index:end_index + 1])
+    return answer

@@ -14,6 +14,7 @@ dependencies = [
     "fugashi>=1.4.0",
     "unidic-lite>=1.0.8",
     "git-filter-repo>=2.45.0",
+    "pytest>=8.3.3",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -40,3 +41,7 @@ ignore_missing_imports = true
 line-length = 88
 lint.select = ["E", "F", "W"]
 lint.ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--maxfail=3 --disable-warnings"

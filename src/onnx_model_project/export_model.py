@@ -1,24 +1,25 @@
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from pathlib import Path
+from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
-def export_onnx_model(model_name: str, output_path: Path, max_length: int = 128) -> None:
+def export_onnx_model(model_name: str, output_path: Path, max_length: int = 512) -> None:
     """
-    モデルをONNX形式にエクスポートする関数。
+    質問応答タスク用のモデルをONNX形式にエクスポートする関数。
 
     Args:
         model_name (str): 事前学習済みモデルの名前。
         output_path (Path): ONNX形式で保存するパス。
         max_length (int): 最大入力トークン長。
     """
-    # トークナイザーとモデルのロード
+    # トークナイザーとモデルをロード
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
+    model = AutoModelForQuestionAnswering.from_pretrained(model_name)
 
-    # サンプル入力を準備
-    sample_text = "サンプルテキストです。"
+    # サンプル入力の準備（質問＋コンテキスト）
+    question = "イベントはいつ開催されますか？"
+    context = "イベントは2024年11月15日に開催されます。場所は東京です。"
     inputs = tokenizer(
-        sample_text,
+        question, context,
         return_tensors="pt",
         max_length=max_length,
         padding="max_length",
@@ -32,10 +33,10 @@ def export_onnx_model(model_name: str, output_path: Path, max_length: int = 128)
         output_path.as_posix(),
         opset_version=14,
         input_names=["input_ids", "attention_mask"],
-        output_names=["output"],
+        output_names=["start_logits", "end_logits"],
         dynamic_axes={
             "input_ids": {0: "batch_size", 1: "sequence_length"},
             "attention_mask": {0: "batch_size", 1: "sequence_length"},
         },
     )
-    print(f"モデルがエクスポートされました: {output_path}")
+    print(f"ONNXモデルが生成されました: {output_path}")
