@@ -12,7 +12,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
 
 # テキストサンプルをトークナイズ
-example_text = "イベントは2024年11月15日に開催されます。"
+example_text = "明日は2024年10月1日です。イベントは11月15日に開催されます。"
 inputs = tokenizer(example_text, return_tensors="pt", max_length=128, padding="max_length", truncation=True)
 
 # ONNX形式に変換
