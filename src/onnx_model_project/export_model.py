@@ -100,10 +100,3 @@ def test_onnx_model(onnx_path: Path, inputs: dict) -> None:
     print("ONNXモデルの推論結果:")
     print("  Start logits:", start_logits)
     print("  End logits:", end_logits)
-
-
-# 実行例
-if __name__ == "__main__":
-    model_name = "distilbert-base-uncased-distilled-squad"  # 任意の事前学習済みモデル名
-    output_path = "./onnx_models/qa_model.onnx"  # 保存先のパス
-    export_onnx_model(model_name, output_path)
