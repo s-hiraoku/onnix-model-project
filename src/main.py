@@ -7,7 +7,7 @@ def main() -> None:
     model_name = "ybelkada/japanese-roberta-question-answering"
     output_dir = Path("onnx_model")
     output_dir.mkdir(exist_ok=True)
-    onnx_path = output_dir / "qa_model.onnx"
+    onnx_path = output_dir / "qa-model.onnx"
 
     # モデルをONNX形式でエクスポート
     export_onnx_model(model_name, onnx_path)
